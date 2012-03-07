@@ -1,0 +1,180 @@
+/*
+Name: PSWRecovery4Moz
+Date 1st published: 20th February 2012
+Date published github: 7th March 2012
+Author: Philipp (pschmidt)
+Contact: ph i lipp (AT] ps ch mi dt.it (w/o spaces and (AT] replaced)
+Webseite: pschmidt.it
+*/
+
+DESCRIPTION:
+PSWRecovery4Moz is a simple and compact C program that is able to recover encrypted passwords
+and usernames from the Mozilla password database (key3.db and signongs.sqlite).
+
+The tool has mainly 2 modes (among other debugging,testing,helper modes):
+- recover WITH libnss (option -n, i.e. normal mode)
+- recover WITHOUT libnss (option -f)
+(if you are interested in the other modes, download the file,compile and run ./pswRecovery4Moz -h)
+
+The first mode is intended to be used if you have firefox/thunderbird (or other mozilla products)
+with the NSS library installed and you want to use that library to do the job for you.
+This mode could be used also to test and compare the results obtained by the second mode (-f).
+The second mode is used to do a "raw" recovery (without the libnss library etc), it is therefore
+able to do a recovery with key3.db and signons.sqlite as input or by using the command line options
+(-g -- global salt --,-e -- entry salt,-R -- RSA part in key3.db --,-p -- base64 encoded password from
+signons.sqlite --,-u -- also in base64 --).
+
+GOALS/PURPOSE:
+The research for Mozilla password encryption was mainly done for one important reason: a filesystem
+crash on one ubuntu 10.10 laptop caused a corructed filesystem and I therefore was NOT able to recover
+all of my firefox and thunderbird passwords. I was able to grep the disk and find strings like 
+'Mozilla Services Encryption Passphrase' (mainly used for Firefox Sync) etc, but I was NOT able to
+recover the whole content of the files. This implies that the normal mode (-n) does NOT work for those
+input files since they are NOT valid anymore. Instead by using pswRecovery4Moz command line options I
+was able to recover ALL passwords.
+The author is NOT responsible for any malicious use of this tool. The tool is NOT intended for malicious
+purposes whatsoever. Please don't misuse this software.
+
+DOWNLOAD:
+:e pswRecovery4Moz
+
+USE:
+1. g++ pswRecovery4Moz.c -ldl -o pswRecovery4Moz
+2. ./pswRecovery4Moz -h
+3. ./pswRecovery4Moz -f    (OR ./pswRecovery4Moz -n, for normal mode)
+
+DISCLAIMER:
+The tool pswRecovery4Moz is for "proof of concept" (POC) only, this does NOT imply that it will NOT work
+at all nor that it was NOT carefully tested.The main purpose of this tool is to proof the research done and
+NOT to create a perfect tool, which NEVER ever crashes.
+Therefore,the USE of this tool does NOT imply any responsibility from the author and you use this tool at
+your own risk. I can not be held responsible for any data loss or other damage whatsoever resulting from
+the use of this tool.
+You are NOT allowed to use this tool to steal passwords OR to do other malicious actions w/ it. I'm NOT 
+responsible for any misuse of this tool. This software is intended to be used in case of emergencies (like 
+my disk corruption case) or at most to do some further research.
+
+CONTRIBUTION:
+If you are a developer or are otherwise able to improve this tool just contact me. Contributors wanted!
+I'm also interested to put it on GitHub or another hosting service for web developers. If you want to help
+to do so, just contact me first.
+
+LICENSE:
+This tool is licensed under GPLv3. It is distributed in the hope that it will be useful, but WITHOUT ANY 
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+CREDITS:
+...go especially to Dr Stephen Henson from drh-consultancy who did some research on key3.db which was very
+useful for me to get started (see http://www.drh-consultancy.demon.co.uk/key3.html)
+
+REQUIREMENTS:
+I've tested the tool under linux x64 and x32 architecture and it run without any problems/crashes.
+For -n mode you need to have libnss3.so somewhere on your system (try to '$ locate libnss3.so' it).
+There is only one further requirement that MUST be satisfied, i.e. you have to install sqlite libraries first,
+but in general you should have installed them already (escpecially you need to have libsqlite3.so or 
+libsqlite3.so.1 somewhere on your system). This library is used to open the signons.sqlite file.
+If you don't want to use sqlite3 libraries you could use the correct command line options that will
+avoid external libraries (e.g. -u and -p). This implies that you open the signons.sqlite file with a text
+editor (sorry, I meant you open signons.sqlite WITH VIM) and search for the base64 encoded strings:
+This should NOT be difficult to do, just search first for a string you expect there, e.g. Services Encryption 
+Passphrase if you use Firefox Sync or google if you want to recover the google password. You find after that
+string the base64 encoded username (first) and the password. They start (on my test systems) in general w/
+MFIEEPg (username) MDoEEPg (password) until an opening curly bracket '{'. This may NOT always be the case.
+Just try to decode them and use put the resulting output into a ASN parser (e.g. http://www.geocities.co.jp/
+SiliconValley-SanJose/3377/asn1JS.html). Hint:you could also use the base64 encoded string for that website,
+otherwise use echo -n "$base64_string"|base64 -d|od -t x1|cut -b 9-|tr '\n' ' ' (or SIMPLER) to get the hex
+string. You need to use the base64 decode in -u and -p options!
+
+AND of course you need to have:
+- LINUX/UNIX(?) - I'm happy if one can contribute to port it to other plattforms (which should NOT be difficult)
+- VIM !!!
+
+HOW IT WORKS:
+The -n mode is straightforward it uses the command line options to query the libnss library, so nothing special
+here (if you nevertheless have questions for this mode,don't hesitate to ask by contacting me).
+
+For the -f mode (the main purpose of this tool and the research) there are some important things to say:
+1. Mozilla uses 2 files to store the passwords. One of those is the signons.sqlite file (in earlier versions it
+    was based on simple txt files) which stores the base64 encoded and with encrypted (username/password) strings.
+    Furthermore it stores also the URL and the input field/target on the page in question.
+   The decoded strings from signons.sqlite (use base64 -d) can be used in a ASN.1 parser (or use pswRecovery4Moz
+   -a option) to get the IV (initialization vector,8 bytes). In the following example 1122334455667788 is the IV
+   to decrypt the encrypted string bef46....07. f8000...01 is the default keyID to SEARCH in key3.db!
+    SEQUENCE {
+        OCTETSTRING f8000000000000000000000000000001
+        SEQUENCE {
+            OBJECTIDENTIFIER 1.2.840.113549.3.7
+            OCTETSTRING 1122334455667788
+        }
+        OCTETSTRING bef46748aa96fe95d1aaecea4673dd07
+    }
+    
+    How to get this SEQUENCE {} stuff? Either but the base64 code into a ASN.1 parser (see links) or use -a option.
+
+    Key3.db is a berkeley database 1.85. You could dump the content w/ db_dump185 (sudo apt-get install db_dump185
+    or apt-get install libdb1-compat). The raw file basically contains (among others) the encrypted private keys 
+    (RSA keys) a global salt string and a password check. If you open the file in a text editor (VIM) then you will
+    find somewhere the string global-salt (use the command within VIM %!xxd -g1 to analyze the file more easily).
+    An example:
+    0001f90: ff ff ff ff ff ff ff 3b 28 75 c2 a9 0d 40 2b 84  .......;(u...@+.
+    0001fa0: b6 83 e0 de a5 41 49 55 07 f3 d4 67 6c 6f 62 61  .....AIU...globa
+    0001fb0: 6c 2d 73 61 6c 74 03 14 01 c4 1b 6a 14 e7 42 f9  l-salt.....j..B.
+
+    This is the global salt section of the file. The key is global-salt. The value is the string BEFORE that key,i.e.
+    3b 28 75 c2 ..... d4.
+
+    The entry salt depends on the entry itself and therefore it is NOT global (for every entry a DIFFERENT entry salt).
+    To get the entry salt for the password check, follow the following rules:
+    0001fb0: 6c 2d 73 61 6c 74 03 14 01 c4 1b 6a 14 e7 42 f9  l-salt.....j..B.
+    0001fc0: 36 de cb 83 05 9f 21 02 b9 a3 8b 36 00 00 0b 2a  6.....!....6...*
+    0001fd0: 86 48 86 f7 0d 01 0c 05 01 03 61 47 6b b6 5b 3d  .H........aGk.[=
+    0001fe0: 77 a4 e0 07 04 83 6c 37 a1 d5 70 61 73 73 77 6f  w.....l7..passwo
+    0001ff0: 72 64 2d 63 68 65 63 6b 03 56 65 72 73 69 6f 6e  rd-check.Version
+
+    Here we see the end of the global salt section (the key) and the password-check key. In between is the value of the
+    password check entry, where the first 3 bytes are header files (i.e. after l-salt - 6c 2d 73 61 6c 74 - second line
+    we have three bytes of which the second byte indicates the length of the password check entry salt !!!IN HEX!!!.
+    Therefore in my case 0x14 is 20 bytes in length for the ES (entry salt),starting with c4 1b ....
+    The last 16 bytest of the password-check VALUE (e.g. 16 bytes before,passwo...(or before 70 61 73 73 77 6f)), in my
+    case it is 61 47 ... d5.
+    Then, use the following algorithm to test the password:
+    1. if ES (entry salt) is less then 20 bytes pad it w/ 00 => 20 bytes in total
+    2. compute the HP (hashed password) w/ the formula SHA1(global-salt+master_password), the master_password can be 
+       empty. + is used here as concatenation symbol. SHA1() is the sha1 sum (as with the unix command sha1sum).
+    3. compute CHP as SHA1(HP+ES), ES is the entry salt,HP is the hashed password (see step 2).
+    4. compute the first part of the key (k1) as CHMAC(PES+ES) where CHMAC is the SHA1 CHMAC algorithm with CHP as key
+       and the concatenation of PES and ES as text input (or message)
+       (Hint: I used some hmac python scripts just to test the CHMAC() implementation in pswRecovery4Moz, you could do
+       the same by following this link http://svn.python.org/projects/python/trunk/Lib/hmac.py)
+    5. you will now be able to compute a temporary key (tk) as follows: tk = CHMAC(PES)
+    6. to get the second part of the key (k2) compute the CHMAC of tk and ES concatenated (i.e. k2= CHMAC(tk||ES)). 
+    7. full key (k) is k1+k2
+    8. now you have already the DES3 credentials:
+        key = the first 24 bytes of k
+        iv = last 8 bytes of k  (the initialization vector of des3 decrypt)
+
+    9. you can finally decrypt the target (encrypted) string w/ the command:
+       echo -en "\x..\x...\x.."|openssl des3 -d -K "$key" -iv "$iv"
+       This should give you the string password-check if you try to decrypt the password-check value in key3.db!!!
+
+   
+    So what we have verified up to now? We checked that the master-password is correct (-m option) and of course also
+    that the global salt (and the algorithm,hehe) is correct.
+    Now we want to do the same to decrypt the private key, found also in the key3.db file. How to find it?
+    Search for the keyID which you can get from the base64 decoded ASN.1 string, it may be the default string f8 00..01
+    The value of this berkeley key is the private key we are looking for.
+    Use this steps to get the des3 key (-K in openssl out of it). Note the IV we already have from the base64 decoded
+    string from signons.sqlite (do you remember?). So this is the only missing part to get back the passwords/usernames.
+    1. put the VALUE of the private key entry (from key3.db) into an ASN.1 parser (note: before the key value are in
+        general some 00 00 00 bytes,after that the private key value should start).
+    2. you get out of it a entry salt (OCTETSTRING) and a text t_pk (longer,next OCTETSTRING).
+    3. use this entry salt to compute the k and iv to decrypt the private key value (as done w/ the password-check value)
+    4. you decrypt the text t_pk w/ openssl des3 -d -K ... -iv ... and get again a ASN.1 string
+    5. this string now contains (among others) the private key k_pk (used to decrypt the initial password/username from 
+        signons.sqlite), it should be 24 bytes and an ASN.1 INTEGER
+    6. What are you waiting for? Decrypt it with iv (from base64 decoded ASN.1 string in signons.sqlite) and the obtained
+        key k_pk from the private key value of key3.db
+    7. That's ALL, you should get back your usernames and passwords
+    8. There is only one step missing: donate (http://pschmidt.it/donate) if you find this guide and the pswRecovery4Moz
+        useful and think of contributing to improve pswRecovery4Moz
