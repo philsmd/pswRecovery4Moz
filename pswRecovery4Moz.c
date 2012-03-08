@@ -31,10 +31,7 @@
 // more instuctions under: http://www.pschmidt.it/?a=:e%20pswRecovery4Moz.txt
 
 // Contribution/Report bugs:
-// Don't hesitate to contribute to this tool. I'm also happy if somebody wants
-// to put it on GitHub etc. Please inform me of any such action s.t. I can help
-// and contribute afterwards myself (pls. do NOT forget to give credits ;-), also
-// to Steve)
+// Don't hesitate to contribute to this tool.Contributors wanted!
 
 #include <stdlib.h>
 #include <stdio.h>
