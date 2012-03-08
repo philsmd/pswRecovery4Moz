@@ -167,19 +167,19 @@ SQLite_Free_Table       SQLiteFreeTable=NULL;
 
 // helper functions
 void str2lower(char*str) {
-	int i,n=strlen(str);
-	for(i=0;i<n;i++) {
-		if (str[i]>=65&&str[i]<=90) {
-		    str[i]+=32;
+    int i,n=strlen(str);
+    for(i=0;i<n;i++) {
+        if (str[i]>=65&&str[i]<=90) {
+            str[i]+=32;
         }
-	}
+    }
 }
 
 int testOpenFile(const char*filePath) {
     FILE*tmpFile=fopen(filePath,"r");
     if (tmpFile==NULL) {
         return 1;
-	}
+    }
     fclose(tmpFile);
     return 0;
 }
@@ -197,12 +197,12 @@ int dirExists(char*path) {
 }
 
 char*getMozProfilePath(int print,const char*path) {
-	char profilePath[BUF_MAX_SMALL];
-	char profileFile[BUF_MAX_SMALL];
-	char line[1024];
-	unsigned long pathSize=BUF_MAX_SMALL;
-	char *finalProfilePath;
-	int isDefaultFound=0;
+    char profilePath[BUF_MAX_SMALL];
+    char profileFile[BUF_MAX_SMALL];
+    char line[1024];
+    unsigned long pathSize=BUF_MAX_SMALL;
+    char *finalProfilePath;
+    int isDefaultFound=0;
     char userPath[BUF_MAX];
     strcpy(userPath,getenv("HOME"));
     if (userPath==NULL||strlen(userPath)<0) {
@@ -217,46 +217,46 @@ char*getMozProfilePath(int print,const char*path) {
         }
     }
     strcat(userPath,path);
-	strcpy(profilePath,userPath);
-	strcpy(profileFile,userPath);
-	strcat(profileFile,MOZ_INI_NAME);
-	FILE*profile=fopen(profileFile,"r");
-	if (!profile) {
+    strcpy(profilePath,userPath);
+    strcpy(profileFile,userPath);
+    strcat(profileFile,MOZ_INI_NAME);
+    FILE*profile=fopen(profileFile,"r");
+    if (!profile) {
         if (print) {
             printf("[-] Failed to open/find profile file: %s\n",profileFile);
         }
-		return NULL;
-	}
-	while(fgets(line,1024,profile)) {
-		str2lower(line);
-		if (!isDefaultFound&&(strstr(line,"name=default")!=NULL)) {
-			isDefaultFound=1;
-			continue;
-		}
+        return NULL;
+    }
+    while(fgets(line,1024,profile)) {
+        str2lower(line);
+        if (!isDefaultFound&&(strstr(line,"name=default")!=NULL)) {
+            isDefaultFound=1;
+            continue;
+        }
 
-		if (isDefaultFound) {
-			if (strstr(line,"path=")!=NULL) {
-				char *slash=strstr(line,"/");
-				if (slash!=NULL) {
-					*slash='\\';
+        if (isDefaultFound) {
+            if (strstr(line,"path=")!=NULL) {
+                char *slash=strstr(line,"/");
+                if (slash!=NULL) {
+                    *slash='\\';
                 }
-				line[strlen(line)-1]=0;
-				char*start=strstr(line,"=");
-				int totalLen=strlen(profilePath)+strlen(start)+3;
-				finalProfilePath=(char*)malloc(totalLen);
-				if (finalProfilePath) {
-					strcpy(finalProfilePath,profilePath);
-					strcat(finalProfilePath,start+1);
+                line[strlen(line)-1]=0;
+                char*start=strstr(line,"=");
+                int totalLen=strlen(profilePath)+strlen(start)+3;
+                finalProfilePath=(char*)malloc(totalLen);
+                if (finalProfilePath) {
+                    strcpy(finalProfilePath,profilePath);
+                    strcat(finalProfilePath,start+1);
                     if (print&&!cmdline_raw) {
                         printf("[i] Profile path: %s\n",finalProfilePath);
                     }
-				}
-				break;
-			}
-		}
-	}
-	fclose(profile);
-	return finalProfilePath;
+                }
+                break;
+            }
+        }
+    }
+    fclose(profile);
+    return finalProfilePath;
 }
 
 void*loadLibrary(char*mozDir,const char*libName) {
@@ -279,15 +279,15 @@ void*loadLibrary(char*mozDir,const char*libName) {
         } else {
             strcpy(loadPath,dirPtr);
         }
-	    strcat(loadPath,"/");
-	    strcat(loadPath,libName);
+        strcat(loadPath,"/");
+        strcat(loadPath,libName);
         if (fileExists(loadPath)) {
             // Finally load the library and exit loop
             libtmp=dlopen(loadPath,RTLD_LAZY);
             break;
         }
         // just try to do the same with a default suffix e.g. [libname.so].0
-	    strcat(loadPath,SQLITE_NAME_ADD_SUFFIX);
+        strcat(loadPath,SQLITE_NAME_ADD_SUFFIX);
         if (fileExists(loadPath)) {
             // Finally load the library and exit loop
             libtmp=dlopen(loadPath,RTLD_LAZY);
@@ -300,15 +300,15 @@ void*loadLibrary(char*mozDir,const char*libName) {
         }
         lastPtr=foundPtr;
     } while (foundPtr);
-	if (!libtmp) {
-		return 0;
-	}
-	return libtmp;
+    if (!libtmp) {
+        return 0;
+    }
+    return libtmp;
 }
 
 void NSSUnload() {
-	if (isNSSInitialized&&NULL!=NSSShutdown) {
-	     (*NSSShutdown)();
+    if (isNSSInitialized&&NULL!=NSSShutdown) {
+        (*NSSShutdown)();
     }
     if (libnss!=NULL) {
          dlclose(libnss);
@@ -316,13 +316,13 @@ void NSSUnload() {
 }
 
 int initNSSLibrary(char*profilePath) {
-	isNSSInitialized=0;
+    isNSSInitialized=0;
     if ((*NSSInit)(profilePath)!=SECSuccess) {
-		NSSUnload();
-		return 1;
-	} else {
-		isNSSInitialized=1;
-	}
+        NSSUnload();
+        return 1;
+    } else {
+        isNSSInitialized=1;
+    }
     return 0;
 }
 
@@ -398,9 +398,9 @@ int PK11Decrypt(char*decodeData,int decodeLen,char**clearData,int*finalLen,const
     struct SECItem reply;
     PK11SlotInfo*slot=(*PK11GetInternalKeySlot)(); // Get a token
     if (!slot) {
-		return 1;
-	}
-	// Decrypt the string
+        return 1;
+    }
+    // Decrypt the string
     // Can be done similar to what was is explained here https://wiki.mozilla.org/NSS_Shared_DB
     if ((*PK11NeedLogin)(slot)) {
         if (master==NULL||strlen(master)<1) {
@@ -420,60 +420,60 @@ int PK11Decrypt(char*decodeData,int decodeLen,char**clearData,int*finalLen,const
     request.data=(unsigned char*)decodeData;
     request.len=decodeLen;
     reply.data=0;
-	reply.len=0;
+    reply.len=0;
     status=(*PK11SDRDecrypt)(&request,&reply,NULL);
     if (status!=SECSuccess) {
         (*PK11FreeSlot)(slot);
-		return 1;
-	}
+        return 1;
+    }
     *clearData=(char*)reply.data;
     *finalLen=reply.len;
-	(*PK11FreeSlot)(slot);  // free the slot
-	return 0;
+    (*PK11FreeSlot)(slot);  // free the slot
+    return 0;
 }
- 
+
 int decryptStr(const char*cryptData,char**clearData,const char*master) {
     int decodeLen=0;
     int finalLen=0;
     char*decodeData=NULL;
     char*finalData=NULL;
-	if (cryptData[0]) {
-		if (base64Decode(cryptData,&decodeData,&decodeLen)||decodeData==NULL) {
+    if (cryptData[0]) {
+        if (base64Decode(cryptData,&decodeData,&decodeLen)||decodeData==NULL) {
             if (decodeData) {
                 free(decodeData);
             }
-			return 1;
-		}
+            return 1;
+        }
         if (PK11Decrypt(decodeData,decodeLen,&finalData,&finalLen,master)||finalData==NULL) {
-			return 1;
-		}
+            return 1;
+        }
         free(decodeData);
-		*clearData=(char*)malloc(finalLen+1);
+        *clearData=(char*)malloc(finalLen+1);
         if (*clearData==NULL) { // malloc failed
-			return 1;
-		}
+            return 1;
+        }
         memcpy(*clearData,finalData,finalLen);
-		*(*clearData+finalLen)=0;
+        *(*clearData+finalLen)=0;
         if (finalData) {
             free(finalData);   
         }
-		return 0;
-	}
-	if (base64Decode(cryptData,clearData,&decodeLen)) {
-		return 1;
-	}
-	return 0;
+        return 0;
+    }
+    if (base64Decode(cryptData,clearData,&decodeLen)) {
+        return 1;
+    }
+    return 0;
 }
 
 char*getMozLibPath() {
     // Logic missing, but needed (if even possible in linux)
     unsigned long pathSize=BUF_MAX_SMALL;
-	const char*path=MOZ_DEFAULT_LIB_PATH;
+    const char*path=MOZ_DEFAULT_LIB_PATH;
     char*mozDir=(char*)malloc(strlen(path)+1);
-	if (mozDir) {
-		strcpy(mozDir,path);
+    if (mozDir) {
+        strcpy(mozDir,path);
     }
-	return mozDir;
+    return mozDir;
 }
 
 void initLib(const char*name,char*dir,void**libref,const char*lib) {
@@ -489,45 +489,45 @@ void initLib(const char*name,char*dir,void**libref,const char*lib) {
 }
 
 int initMozLibs(char*mozDir) {
-	libnss=NULL;
-	if (mozDir!=NULL) {
+    libnss=NULL;
+    if (mozDir!=NULL) {
         if (libsqlite=loadLibrary(mozDir,SQLITE_LIBRARY_NAME)) {
             libnss=loadLibrary(mozDir,NSS_LIBRARY_NAME);
         }
-	}
-	if (!libnss) {  //  try it w/o full path or fail
-		libnss=dlopen(NSS_LIBRARY_NAME,RTLD_LAZY);
-		if (!libnss) {
+    }
+    if (!libnss) {  //  try it w/o full path or fail
+        libnss=dlopen(NSS_LIBRARY_NAME,RTLD_LAZY);
+        if (!libnss) {
             printf("[-] The library libnss could NOT be initialized\n");
-			return 0;
-		}
-	}
-	if (!libsqlite) {
-		return 0;
-	}
-	NSSInit=(NSS_Init)dlsym(libnss,"NSS_Init");
-	NSSShutdown=(NSS_Shutdown)dlsym(libnss,"NSS_Shutdown");
-	PK11GetInternalKeySlot=(PK11_GetInternalKeySlot)dlsym(libnss,"PK11_GetInternalKeySlot");
-	PK11NeedLogin=(PK11_NeedLogin)dlsym(libnss,"PK11_NeedLogin");
-	PK11GetTokenName=(PK11_GetTokenName)dlsym(libnss,"PK11_GetTokenName");
-	PK11Authenticate=(PK11_Authenticate) dlsym(libnss,"PK11_Authenticate");
-	PK11CheckUserPassword=(PK11_CheckUserPassword)dlsym(libnss,"PK11_CheckUserPassword");
-	PK11SDRDecrypt=(PK11SDR_Decrypt) dlsym(libnss,"PK11SDR_Decrypt");
-	PK11FreeSlot=(PK11_FreeSlot)dlsym(libnss,"PK11_FreeSlot");
-	if (!NSSInit||!NSSShutdown||!PK11GetInternalKeySlot||!PK11NeedLogin||!PK11Authenticate||!PK11SDRDecrypt||
+            return 0;
+        }
+    }
+    if (!libsqlite) {
+        return 0;
+    }
+    NSSInit=(NSS_Init)dlsym(libnss,"NSS_Init");
+    NSSShutdown=(NSS_Shutdown)dlsym(libnss,"NSS_Shutdown");
+    PK11GetInternalKeySlot=(PK11_GetInternalKeySlot)dlsym(libnss,"PK11_GetInternalKeySlot");
+    PK11NeedLogin=(PK11_NeedLogin)dlsym(libnss,"PK11_NeedLogin");
+    PK11GetTokenName=(PK11_GetTokenName)dlsym(libnss,"PK11_GetTokenName");
+    PK11Authenticate=(PK11_Authenticate) dlsym(libnss,"PK11_Authenticate");
+    PK11CheckUserPassword=(PK11_CheckUserPassword)dlsym(libnss,"PK11_CheckUserPassword");
+    PK11SDRDecrypt=(PK11SDR_Decrypt) dlsym(libnss,"PK11SDR_Decrypt");
+    PK11FreeSlot=(PK11_FreeSlot)dlsym(libnss,"PK11_FreeSlot");
+    if (!NSSInit||!NSSShutdown||!PK11GetInternalKeySlot||!PK11NeedLogin||!PK11Authenticate||!PK11SDRDecrypt||
             !PK11FreeSlot||!PK11CheckUserPassword) {
         if (!cmdline_raw) {
             printf("[-] Not all library functions could be found\n"); 
         }
-		NSSUnload();
+        NSSUnload();
         return 0;
     }
-	return 1;
+    return 1;
 }
 
 int decryptCmdLine(const char*user,const char*pass,const char*master) {
-	char*clearData;
-	if (!decryptStr(user,&clearData,master)==1) {
+    char*clearData;
+    if (!decryptStr(user,&clearData,master)==1) {
         if (!cmdline_raw) {
             printf("[i] Username: ");
         }
@@ -535,8 +535,8 @@ int decryptCmdLine(const char*user,const char*pass,const char*master) {
         if (clearData) {
             free(clearData);
         }
-	}
-	if (!decryptStr(pass,&clearData,master)==1) {
+    }
+    if (!decryptStr(pass,&clearData,master)==1) {
         if (!cmdline_raw) {
             printf("[i] Password: ");
         }
@@ -544,7 +544,7 @@ int decryptCmdLine(const char*user,const char*pass,const char*master) {
         if (clearData) {
             free(clearData);
         }
-	}
+    }
     return 0;
 }
 
@@ -553,12 +553,12 @@ char**getSQLiteContent(char*signonFile,char***dst,unsigned int*retNum,unsigned i
     (*retNum)=0;
     (*retCols)=0;
     // you could do similar things w/ -lsqlite instead of -ldl of course (but who really cares?)
-	SQLiteOpen=(SQLite_Open)dlsym(libsqlite,"sqlite3_open_v2");
-	SQLiteGetTable=(SQLite_Get_Table)dlsym(libsqlite,"sqlite3_get_table");
-	SQLiteFreeTable=(SQLite_Free_Table)dlsym(libsqlite,"sqlite3_free_table");
-	SQLiteClose=(SQLite_Close)dlsym(libsqlite,"sqlite3_close");
-	if (signonFile==NULL||testOpenFile(signonFile)) {
-		return 0;
+    SQLiteOpen=(SQLite_Open)dlsym(libsqlite,"sqlite3_open_v2");
+    SQLiteGetTable=(SQLite_Get_Table)dlsym(libsqlite,"sqlite3_get_table");
+    SQLiteFreeTable=(SQLite_Free_Table)dlsym(libsqlite,"sqlite3_free_table");
+    SQLiteClose=(SQLite_Close)dlsym(libsqlite,"sqlite3_close");
+    if (signonFile==NULL||testOpenFile(signonFile)) {
+        return 0;
     }
     void*sqliteDB;
     if (!SQLiteOpen(signonFile,&sqliteDB,SQLITE_OPEN_READONLY,NULL)) {
@@ -584,19 +584,19 @@ char**getSQLiteContent(char*signonFile,char***dst,unsigned int*retNum,unsigned i
             SQLiteFreeTable(tuples);
         }
         SQLiteClose(sqliteDB);
-	}
+    }
     *dst=retArray;
-	return retArray;
+    return retArray;
 }
 
 int decryptSQLite(const char*signonFile,const char*master) {
-	char*clearData;
-	SQLiteOpen=(SQLite_Open)dlsym(libsqlite,"sqlite3_open_v2");
-	SQLiteGetTable=(SQLite_Get_Table)dlsym(libsqlite,"sqlite3_get_table");
-	SQLiteFreeTable=(SQLite_Free_Table)dlsym(libsqlite,"sqlite3_free_table");
-	SQLiteClose=(SQLite_Close)dlsym(libsqlite,"sqlite3_close");
-	if (signonFile==NULL||testOpenFile(signonFile)) {
-		return 1;
+    char*clearData;
+    SQLiteOpen=(SQLite_Open)dlsym(libsqlite,"sqlite3_open_v2");
+    SQLiteGetTable=(SQLite_Get_Table)dlsym(libsqlite,"sqlite3_get_table");
+    SQLiteFreeTable=(SQLite_Free_Table)dlsym(libsqlite,"sqlite3_free_table");
+    SQLiteClose=(SQLite_Close)dlsym(libsqlite,"sqlite3_close");
+    if (signonFile==NULL||testOpenFile(signonFile)) {
+        return 1;
     }
     if (!cmdline_raw) {
         printf("[i] Source file: %s\n",signonFile);
@@ -620,7 +620,7 @@ int decryptSQLite(const char*signonFile,const char*master) {
                 } else {
                     ii+=2; // this will be done always (either with 2x ii++ or here)
                 }
-		        if (!decryptStr(tuples[i*columns+(ii++)],&clearData,master)==1) {
+                if (!decryptStr(tuples[i*columns+(ii++)],&clearData,master)==1) {
                     if (!cmdline_raw) {
                         printf("[i] Username: ");
                     }
@@ -628,8 +628,8 @@ int decryptSQLite(const char*signonFile,const char*master) {
                     if (clearData) {
                         free(clearData);
                     }
-		        }
-		        if (!decryptStr(tuples[i*columns+ii],&clearData,master)==1) {
+                }
+                if (!decryptStr(tuples[i*columns+ii],&clearData,master)==1) {
                     if (!cmdline_raw) {
                         printf("==> Password: ");
                     }
@@ -637,13 +637,13 @@ int decryptSQLite(const char*signonFile,const char*master) {
                     if (clearData) {
                         free(clearData);
                     }
-		        }
+                }
             }
             ret=SQLiteFreeTable(tuples);
         }
         SQLiteClose(sqliteDB);
-	}
-	return ret;
+    }
+    return ret;
 }
 
 // HMAC for SHA1
@@ -1152,7 +1152,7 @@ char*SHA1_HMAC(char*dst,char*key_input,char*text_input,const unsigned int print)
 }
 
 int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
-	char*profilePath=NULL,*mozDir=NULL,*user=NULL,*pass=NULL,*master=NULL;
+    char*profilePath=NULL,*mozDir=NULL,*user=NULL,*pass=NULL,*master=NULL;
     char fromCmdLine=0; // or bool, or int
     int ret=0;
     // check command opts
@@ -1165,19 +1165,19 @@ int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
             while (++cmdOptCount<max) {
                 if (strlen(next)>0) {
                     if (!strcmp(next,"user")) {
-				        user=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
+                        user=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
                         strcpy(user,cmdOpts[cmdOptCount]);
                     } else if (!strcmp(next,"pass")) {
-				        pass=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
+                        pass=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
                         strcpy(pass,cmdOpts[cmdOptCount]);
                     } else if (!strcmp(next,"path")) {
-				        profilePath=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
+                        profilePath=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
                         strcpy(profilePath,cmdOpts[cmdOptCount]);
                     } else if (!strcmp(next,"lib")) {
-				        mozDir=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
+                        mozDir=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
                         strcpy(mozDir,cmdOpts[cmdOptCount]);
                     } else if (!strcmp(next,"master")) {
-				        master=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
+                        master=(char*)malloc(strlen(cmdOpts[cmdOptCount])+3);
                         strcpy(master,cmdOpts[cmdOptCount]);
                     }
                     strcpy(next,"");
@@ -1213,28 +1213,28 @@ int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
         } else if (!strstr(profilePath,FF_USER_PATH)) {
             loop=0; 
         }
-	    if (profilePath&&!dirExists(profilePath)) {
-	    	printf("[-] Mozilla profile does not exists, tried with %s\n",profilePath);
-	    	ret=1;
-	    }
+        if (profilePath&&!dirExists(profilePath)) {
+            printf("[-] Mozilla profile does not exists, tried with %s\n",profilePath);
+            ret=1;
+        }
         if (!ret) {
             if (mozDir==NULL||strlen(mozDir)<1) {
                 mozDir=getMozLibPath();
             }
         }
-	    if (!ret&&initMozLibs(mozDir)) {
-	    	if (!initNSSLibrary(profilePath)) {
+        if (!ret&&initMozLibs(mozDir)) {
+            if (!initNSSLibrary(profilePath)) {
                 if (!fromCmdLine) {
                     char*signonFile=(char*)malloc(sizeof(char)*(strlen(profilePath)+strlen(MOZ_SIGNONS))+3);
                     strcpy(signonFile,profilePath);
                     strcat(signonFile,"/");
                     strcat(signonFile,MOZ_SIGNONS);
-	    		    decryptSQLite(signonFile,master);
+                    decryptSQLite(signonFile,master);
                 } else {
                     decryptCmdLine(user,pass,master);
                 }
-	    	}
-	    } else if (!ret) {
+            }
+        } else if (!ret) {
             if (!cmdline_raw) {
                 printf("[-] Failed to initialize Mozilla libraries. Please check the lib path (-l or MOZ_DEFAULT_LIB_PATH)\n");
                 printf("    and/or dependencies.\n");
@@ -1271,7 +1271,7 @@ int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
     if (master) {
         free(master); 
     }
-	return ret;
+    return ret;
 }
 
 unsigned int ASN1GetNum(const char*element) {
@@ -2571,7 +2571,7 @@ int doRecoverWithoutLibNss(char*keydb,char*signons,char*mozDir,char*user,char*pa
                 printf("[i] Input file %s: %s\n",MOZ_SIGNONS,signons);
             }
             initLib("SQLite",mozDir,&libsqlite,SQLITE_LIBRARY_NAME);
-	        getSQLiteContent(signons,&targetPasswordEntries,&targetPasswordEntriesNum,&targetPasswordEntriesCols);
+            getSQLiteContent(signons,&targetPasswordEntries,&targetPasswordEntriesNum,&targetPasswordEntriesCols);
             if (!targetPasswordEntriesNum) {
                 printf("[-] There was NO entry that could be fetch from %s\n",signons); 
                 return 1;
@@ -2766,34 +2766,34 @@ int recoverWithoutLibNss(int argc,char**argv) {
     while (++cmdOptCount<argc) {
         if (strlen(next)>0) {
             if (strcmp(next,"path")==0) {
-		        profilePath=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                profilePath=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(profilePath,argv[cmdOptCount]);
             } else if (strcmp(next,"key3")==0) {
-		        key3File=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                key3File=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(key3File,argv[cmdOptCount]);
             } else if (strcmp(next,"sig")==0) {
-		        signonFile=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                signonFile=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(signonFile,argv[cmdOptCount]);
             } else if (strcmp(next,"user")==0) {
-		        user=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                user=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(user,argv[cmdOptCount]);
             } else if (strcmp(next,"pass")==0) {
-		        pass=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                pass=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(pass,argv[cmdOptCount]);
             } else if (strcmp(next,"global")==0) {
-		        global=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                global=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(global,argv[cmdOptCount]);
             } else if (strcmp(next,"entry")==0) {
-		        entry=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                entry=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(entry,argv[cmdOptCount]);
             } else if (strcmp(next,"master")==0) {
-		        master=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                master=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(master,argv[cmdOptCount]);
             } else if (strcmp(next,"lib")==0) {
-		        mozDir=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                mozDir=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(mozDir,argv[cmdOptCount]);
             } else if (strcmp(next,"rsa")==0) {
-		        rsa=(char*)malloc(strlen(argv[cmdOptCount])+3);
+                rsa=(char*)malloc(strlen(argv[cmdOptCount])+3);
                 strcpy(rsa,argv[cmdOptCount]);
             }
             strcpy(next,"");
@@ -2851,7 +2851,7 @@ int recoverWithoutLibNss(int argc,char**argv) {
             } else {
                 loop=0;
             }
-    
+
         }
         if (signonFile&&signonOld&&!strcmp(signonFile,signonOld)) {
             break;
