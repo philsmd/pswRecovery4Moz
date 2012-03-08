@@ -9,7 +9,7 @@ Webseite: pschmidt.it
 
 DESCRIPTION:
 PSWRecovery4Moz is a simple and compact C program that is able to recover encrypted passwords
-and usernames from the Mozilla password database (key3.db and signongs.sqlite).
+and usernames from the Mozilla password database (key3.db and signons.sqlite).
 
 The tool has mainly 2 modes (among other debugging,testing,helper modes):
 - recover WITH libnss (option -n, i.e. normal mode)
