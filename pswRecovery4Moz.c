@@ -26,7 +26,7 @@
 
 // Instructions:
 // compile this file w/ the command:
-// g++ pswRecovery4Moz.c -ldl # -o pswRecovery4Moz
+// gcc pswRecovery4Moz.c -ldl # -o pswRecovery4Moz
 //
 // more instuctions under: http://www.pschmidt.it/?a=:e%20pswRecovery4Moz.txt
 
@@ -146,7 +146,7 @@ typedef int          (*PK11_NeedLogin)(PK11SlotInfo*slot);
 typedef char*        (*PK11_GetTokenName)(PK11SlotInfo*slot);
 typedef SECStatus    (*PK11_Authenticate)(PK11SlotInfo*slot,int cert,void*pass);
 typedef SECStatus    (*PK11_CheckUserPassword)(PK11SlotInfo*slot,char*pass);
-typedef SECStatus    (*PK11SDR_Decrypt)(SECItem*data,SECItem*result,void*cx);
+typedef SECStatus    (*PK11SDR_Decrypt)(struct SECItem*data,struct SECItem*result,void*cx);
 typedef void         (*PK11_FreeSlot)(PK11SlotInfo*slot);
 
 typedef int          (*SQLite_Open)(const char*file,void**db,int,const char*vfs);
@@ -170,8 +170,8 @@ SQLite_Free_Table       SQLiteFreeTable=NULL;
 
 // helper functions
 void str2lower(char*str) {
-	int n=strlen(str);
-	for(int i=0;i<n;i++) {
+	int i,n=strlen(str);
+	for(i=0;i<n;i++) {
 		if (str[i]>=65&&str[i]<=90) {
 		    str[i]+=32;
         }
@@ -199,7 +199,7 @@ int dirExists(char*path) {
     return S_ISDIR(stat_p.st_mode);
 }
 
-char*getMozProfilePath(bool print,const char*path) {
+char*getMozProfilePath(int print,const char*path) {
 	char profilePath[BUF_MAX_SMALL];
 	char profileFile[BUF_MAX_SMALL];
 	char line[1024];
@@ -397,8 +397,8 @@ int base64Decode(const char*encoded,char**decoded,int*decodedLen) {
 
 int PK11Decrypt(char*decodeData,int decodeLen,char**clearData,int*finalLen,const char*master) {
     SECStatus status;
-    SECItem request;
-    SECItem reply;
+    struct SECItem request;
+    struct SECItem reply;
     PK11SlotInfo*slot=(*PK11GetInternalKeySlot)(); // Get a token
     if (!slot) {
 		return 1;
@@ -613,7 +613,8 @@ int decryptSQLite(const char*signonFile,const char*master) {
         const char*query=MOZ_SIGNONS_QUERY;
         ret=SQLiteGetTable(sqliteDB,query,&tuples,&rows,&columns,&errorMsg);
         if (!ret) {
-            for (int i=1,ii=0;i<=rows;i++,ii=0) {
+            int i,ii;
+            for (i=1,ii=0;i<=rows;i++,ii=0) {
                 if (!cmdline_raw) {
                     printf("\n");
                     // Those two info are NOT so important,skip in raw output
@@ -1155,7 +1156,7 @@ char*SHA1_HMAC(char*dst,char*key_input,char*text_input,const unsigned int print)
 
 int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
 	char*profilePath=NULL,*mozDir=NULL,*user=NULL,*pass=NULL,*master=NULL;
-    bool fromCmdLine=false;
+    char fromCmdLine=0; // or bool, or int
     int ret=0;
     // check command opts
     if (cmdOptCount>1) {
@@ -1198,13 +1199,13 @@ int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
         }
 
         if (max>2&&user!=NULL&&pass!=NULL) {
-            fromCmdLine=true;
+            fromCmdLine=1;
         } else if (!cmdline_raw) {
             printf("[!] User/password command line options were not supplied\n");
         }
     }
     // loop through the list of available TB and FF directories
-    bool loop=true;
+    char loop=1;
     while (loop) {
         // check moz profile path
         if (profilePath==NULL||strlen(profilePath)<1) {
@@ -1213,7 +1214,7 @@ int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
                 profilePath=getMozProfilePath(0,TB_USER_PATH);
             }
         } else if (!strstr(profilePath,FF_USER_PATH)) {
-            loop=false; 
+            loop=0; 
         }
 	    if (profilePath&&!dirExists(profilePath)) {
 	    	printf("[-] Mozilla profile does not exists, tried with %s\n",profilePath);
@@ -1254,10 +1255,10 @@ int recoverWithLibNss(int cmdOptCount,char**cmdOpts) {
                 printf("\n\n"); 
             }
         } else {
-            loop=false;
+            loop=0;
         }
         if (!profilePath||strlen(profilePath)<1) {
-            loop=false;
+            loop=0;
         }
     }
     // yes also some cleanup is needed of course
@@ -1306,7 +1307,7 @@ char*ASN1GetName(char*dst,const char num) {
     return ret;
 }
 
-void ASN1PrintLine(const char*text,const unsigned int num,bool newline) {
+void ASN1PrintLine(const char*text,const unsigned int num,char newline) {
     int i;
     for (i=0;i<num*ASN1_INDENTATION;i++) {
         printf(" ");
@@ -1319,7 +1320,7 @@ void ASN1PrintLine(const char*text,const unsigned int num,bool newline) {
     }
 }
 
-void ASN1Print(const char*encoded,bool decode,const unsigned int maxSize,const unsigned int indentation) {
+void ASN1Print(const char*encoded,char decode,const unsigned int maxSize,const unsigned int indentation) {
     unsigned int tempLength;
     if (maxSize>0) {
         tempLength=maxSize; 
@@ -1416,7 +1417,7 @@ void ASN1Print(const char*encoded,bool decode,const unsigned int maxSize,const u
     }
 }
 
-char*ASN1GetElement(char*dst,const char*encoded,bool decode,const unsigned int maxSize,const unsigned int searchType,unsigned int*num) {
+char*ASN1GetElement(char*dst,const char*encoded,char decode,const unsigned int maxSize,const unsigned int searchType,unsigned int*num) {
     char*ret=dst;
     strcpy(ret,"");
     if (*num<1) {
@@ -2043,7 +2044,7 @@ rsaEncryptionNode*searchRsaEncryptionNode(rsaEncryptionNode*root,const char*keyI
 
 rsaEncryptionNode*addRsaEncryptionNode(rsaEncryptionNode*root,char*keyID,const char*key3db,char*rsa,
         const char*global_salt,const char*password,unsigned int hideError) {
-    bool rsaNULL=(rsa==NULL);
+    char rsaNULL=(rsa==NULL);
     rsaEncryptionNode*prevptr=NULL;
     rsaEncryptionNode*ptr=NULL;
     rsaEncryptionNode*newNode,cur;
@@ -2295,7 +2296,7 @@ int rsaPrintEntry(const char*target,const char*encoded,rsaEncryptionNode**root,c
     unsigned int elementNum;
     int decodedLength=0,octetASN1Num=ASN1GetNum("OCTET STRING");
     char*base64decoded,asnElement[BUF_MAX_LARGE],asnElement2[BUF_MAX_LARGE],hxtostrTemp[BUF_MAX_LARGE],output[BUF_MAX_LARGE];
-    bool found=false;
+    char found=0;
     rsaEncryptionNode*tmpRsaEncryptionPtr;
 
     base64Decode(encoded,&base64decoded,&decodedLength);
@@ -2320,13 +2321,13 @@ int rsaPrintEntry(const char*target,const char*encoded,rsaEncryptionNode**root,c
             if (!strncmp(tmpRsaEncryptionPtr->key,KEY_NULL_PREFIX,strlen(KEY_NULL_PREFIX))) {
                 decrypt(asnElement2,output,tmpRsaEncryptionPtr->key+strlen(KEY_NULL_PREFIX),asnElement,&outlen);
                 if (outlen>0&&output!=NULL&&strlen(output)>0&&strlen(output)==outlen) {
-                    found=true; 
+                    found=1; 
                 }
             }
             if (!found) { // just try it also w/ the full length key
                 decrypt(asnElement2,output,tmpRsaEncryptionPtr->key,asnElement,&outlen);
                 if (outlen>0&&output!=NULL&&strlen(output)>0&&strlen(output)==outlen) {
-                    found=true; 
+                    found=1; 
                 }
             }
             if (found) {
@@ -2821,7 +2822,7 @@ int recoverWithoutLibNss(int argc,char**argv) {
             strcpy(next,"rsa");
         }
     } 
-    bool loop=true;
+    char loop=1;
     char*signonOld=NULL,*keyOld=NULL,*lastPath=NULL;
     while (loop) {
         if (user==NULL||strlen(user)<1||pass==NULL||strlen(pass)<1) {
@@ -2836,7 +2837,7 @@ int recoverWithoutLibNss(int argc,char**argv) {
             if (signonFile==NULL||strlen(signonFile)<1) {
                 signonFile=getAlternativeFile(MOZ_SIGNONS,profilePath,lastPath);
             } else {
-                loop=false; 
+                loop=0; 
             }
         }
         if (global==NULL||strlen(global)<1||entry==NULL||strlen(entry)<1) {
@@ -2851,7 +2852,7 @@ int recoverWithoutLibNss(int argc,char**argv) {
             if (key3File==NULL||strlen(key3File)<1) {
                 key3File=getAlternativeFile(MOZ_KEY3DB,profilePath,lastPath);
             } else {
-                loop=false;
+                loop=0;
             }
     
         }
@@ -2867,7 +2868,7 @@ int recoverWithoutLibNss(int argc,char**argv) {
             }
         }
         if (lastPath) {
-            loop=false;
+            loop=0;
         }
         // DO the ACTUAL RECOVER
         doRecoverWithoutLibNss(key3File,signonFile,mozDir,user,pass,global,entry,master,rsa);
@@ -2883,7 +2884,7 @@ int recoverWithoutLibNss(int argc,char**argv) {
             signonFile=NULL;
             key3File=NULL;
         } else {
-            loop=false;
+            loop=0;
         }
     }
     // now we really need to do a little bit of cleanup (this should be done always also when

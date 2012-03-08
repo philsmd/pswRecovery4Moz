@@ -12,7 +12,7 @@ see also: www.pschmidt.it/?a=:e%20pswRecovery4Moz.txt
 # Requirements
 
 Software:  
-- g++ compiler
+- gcc compiler (or other ANSI C/C++ compilers and linkers)
 - libnss (optional,automatically installed w/ most of Mozilla products)
 
 # Installation and First Steps
@@ -20,7 +20,7 @@ Software:
     git clone https://github.com/philsmd/pswRecovery4Moz.git  
 * Build pswRecovery4Moz:  
     cd pswRecovery4Moz 
-    g++ pswRecovery4Moz.c -ldl -o pswRecovery4Moz 
+    gcc pswRecovery4Moz.c -ldl -o pswRecovery4Moz 
 * Check help:  
     ./pswRecovery4Moz -h 
 * Use whatever functionality you need (see options and pswRecovery4Moz.txt)

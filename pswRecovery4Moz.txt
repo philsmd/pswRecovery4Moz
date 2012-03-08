@@ -39,7 +39,7 @@ DOWNLOAD:
 :e pswRecovery4Moz
 
 USE:
-1. g++ pswRecovery4Moz.c -ldl -o pswRecovery4Moz
+1. gcc pswRecovery4Moz.c -ldl -o pswRecovery4Moz
 2. ./pswRecovery4Moz -h
 3. ./pswRecovery4Moz -f    (OR ./pswRecovery4Moz -n, for normal mode)
 
