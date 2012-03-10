@@ -14,6 +14,7 @@ see also: www.pschmidt.it/?a=:e%20pswRecovery4Moz.txt
 Software:  
 - gcc compiler (or other ANSI C/C++ compilers and linkers)
 - libnss (optional,automatically installed w/ most of Mozilla products)
+- sqlite3 library (libsqlite3.so)
 
 # Installation and First Steps
 * Clone this repository:  
