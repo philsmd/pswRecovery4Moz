@@ -21,7 +21,7 @@ Software:
     git clone https://github.com/philsmd/pswRecovery4Moz.git  
 * Build pswRecovery4Moz:  
     cd pswRecovery4Moz 
-    gcc pswRecovery4Moz.c -ldl -o pswRecovery4Moz 
+    gcc pswRecovery4Moz.c -m32 -ldl -o pswRecovery4Moz 
 * Check help:  
     ./pswRecovery4Moz -h 
 * Use whatever functionality you need (see options and pswRecovery4Moz.txt)
