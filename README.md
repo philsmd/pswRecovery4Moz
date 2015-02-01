@@ -1,6 +1,6 @@
 # About
 
-This project aims to help you when you have a faulty Firefox/Thunderbird installation or a corrupted filesystem (like in my case) to recover passwords from signons.sqlite and key3.db.
+This project aims to help you when you have a faulty Firefox/Thunderbird installation or a corrupted filesystem (like in my case) to recover passwords from signons.sqlite and key3.db.  
 See file pswRecover4Moz.txt for full explanations!  
 
 # Features  
